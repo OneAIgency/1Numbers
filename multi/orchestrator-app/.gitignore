@@ -1,0 +1,33 @@
+# Python
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/.pytest_cache/
+
+# Node.js
+mcp-server/node_modules/
+mcp-server/dist/
+orchestrator/node_modules/
+orchestrator/dist/
+
+# macOS
+macOS/build/
+macOS/.swiftpm/
+macOS/*.xcodeproj/xcuserdata/
+macOS/*.xcworkspace/xcuserdata/
+macOS/DerivedData/
+
+# Config
+config/projects/*.json
+!config/projects/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+

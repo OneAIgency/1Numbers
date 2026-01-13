@@ -1,0 +1,51 @@
+{
+  "name": "@orchestrator/core",
+  "version": "2.0.0",
+  "description": "Core types, agents, and orchestration logic",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js"
+    },
+    "./agents": {
+      "types": "./dist/agents/index.d.ts",
+      "import": "./dist/agents/index.js"
+    },
+    "./modes": {
+      "types": "./dist/modes/index.d.ts",
+      "import": "./dist/modes/index.js"
+    },
+    "./providers": {
+      "types": "./dist/providers/index.d.ts",
+      "import": "./dist/providers/index.js"
+    },
+    "./events": {
+      "types": "./dist/events/index.d.ts",
+      "import": "./dist/events/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "uuid": "^11.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.0",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^2.1.0"
+  }
+}
