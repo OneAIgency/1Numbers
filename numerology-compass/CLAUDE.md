@@ -9,101 +9,97 @@ Numerology Compass is a multilingual (Romanian/English/Russian) numerology web a
 ## Commands
 
 ```bash
-npm run dev           # Start dev server on port 8080
+# Frontend
+npm run dev           # Start dev server on http://localhost:8080
 npm run build         # Production build
 npm run lint          # Run ESLint
-npm run preview       # Preview production build
 npm run test          # Run tests in watch mode
 npm run test:run      # Run tests once
-npm run test:coverage # Run tests with coverage report
+npm run test:coverage # Coverage report (targets src/lib/)
+
+# Run single test file
+npm run test:run -- src/lib/__tests__/numerology.test.ts
+
+# Backend (from server/ directory)
+cd server
+npm run dev           # Start Express server with nodemon
+npm run build         # TypeScript compilation
+npm run migrate       # Run database migrations
 ```
 
 ## Architecture
 
-### Tech Stack
-- **React 18 + TypeScript + Vite** with SWC compiler
-- **shadcn/ui** (Radix primitives) for components
-- **Tailwind CSS** with custom mystic theme colors
-- **React Router** for navigation
-- **React Query** for server state
-- **Node.js** - Backend API server
-- **PostgreSQL** - Database
+**Tech Stack**: React 18 + TypeScript + Vite 6 (SWC) | shadcn/ui + Tailwind | React Router + React Query | Express + PostgreSQL
 
-### Key Directories
-
+### Layer Structure
 ```
 src/
-├── lib/           # Business logic (numerology calculations)
-├── pages/         # Route components
-├── components/    # UI components + charts/
-├── contexts/      # LanguageContext, AuthContext
-├── hooks/         # Custom hooks
-└── integrations/  # API client (Node.js backend)
+├── lib/           # Pure TypeScript business logic (no React imports)
+├── pages/         # Route components (lazy-loaded)
+├── components/    # UI: shadcn in ui/, custom at root, charts/
+├── contexts/      # LanguageContext, AuthContext, ThemeContext
+├── hooks/         # Custom React hooks
+└── integrations/  # API client (Supabase)
+
+server/src/
+├── routes/        # API endpoints
+├── middleware/    # Auth middleware
+└── migrations/    # Database migrations
 ```
 
-### Business Logic (`src/lib/`)
+### Core Business Logic (`src/lib/`)
 
-All numerology calculations are pure TypeScript functions in `lib/`:
-- `numerology.ts` - Core calculations (Life Path, Destiny, Soul Urge, Personality)
-- `compatibility.ts` + `compatibilityMatrix.ts` - Person compatibility scoring
+All numerology calculations are pure TypeScript functions:
+- `numerology.ts` - Life Path, Destiny, Soul Urge, Personality, Personal Year
+- `compatibility.ts` + `compatibilityMatrix.ts` - Compatibility scoring (Life Path 50%, Destiny 30%, Soul Urge 20%)
 - `karmic.ts` - Karmic debt (13, 14, 16, 19) and lessons
 - `personalCycles.ts` - Day/Month/Year cycles
 - `pinnacles.ts` - Life pinnacles and challenges
 - `predictions.ts` - Daily/monthly forecasts
-- `translations.ts` - All UI text in RO/EN/RU
+- `nameAnalysis.ts`, `phoneAnalysis.ts`, `vehicleAnalysis.ts`, `locationAnalysis.ts`, `dateAnalysis.ts` - Specialized analysis
+- `translations.ts` - All UI text in RO/EN/RU (~89K lines)
 
-### Component Patterns
+### Key Conventions
 
-- UI primitives in `components/ui/` (shadcn standard)
-- Feature components at `components/` root level
-- Charts use Recharts in `components/charts/`
-- Path alias `@/` maps to `src/`
+**Master Numbers**: 11, 22, 33 preserved via `preserveMaster` flag in `reduceToSingleDigit()`
+
+**Translations**: Access via `useLanguage()` hook:
+```typescript
+const { t, language, setLanguage } = useLanguage();
+// Access: t.section.key
+```
+
+**Component Structure**:
+```typescript
+// External imports → Internal (@/) imports → Interface → Component
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+
+interface Props { ... }
+
+export const Component = ({ ... }: Props) => {
+  // Order: hooks → state → effects → handlers → render
+};
+```
+
+**Import Alias**: `@/` maps to `src/`
 
 ### Styling
 
-Custom theme extends Tailwind with `mystic-*` colors (purple, indigo, gold, violet). Fonts: Cinzel (headings), Raleway (body). CSS variables in `index.css`.
+Custom `mystic-*` colors (gold, purple, violet, indigo). Fonts: Cinzel (headings), Raleway (body). CSS variables in `index.css`.
+
+Custom utilities: `.text-gradient-gold`, `.glow-gold`, `.card-mystic`, `.number-display`, `.btn-mystic`
 
 ### Routes
 
-`/` (Index), `/guide`, `/compatibility`, `/predictions`, `/tools`, `/tutorials`, `/faq`, `/auth`
+`/` (calculator), `/guide`, `/compatibility`, `/predictions`, `/tools`, `/tutorials`, `/faq`, `/auth`, `/profile`, `/journal`, `/courses`, `/articles`, `/premium`
 
-## Conventions
+## Key Files
 
-- Master numbers (11, 22, 33) are preserved in reductions via `preserveMaster` flag
-- Translation keys follow pattern: `translations[lang][section][key]`
-- Form validation uses Zod schemas with react-hook-form
+- `app-truth.md` - Single source of truth for architecture, patterns, and domain rules
+- `.claude/agents/` - Multi-agent definitions (orchestrator, implement, verify, test, docs, numerology-expert, creative, optimize)
+- `.claude/skills/` - Custom skills (/build-check, /new-feature, /add-translation, /quick-test, /analyze)
 
-## Multi-Agent System
+## Testing
 
-This project uses an orchestrated multi-agent development system optimized for M4 Pro.
-
-### Agents (`.claude/agents/`)
-| Agent | Purpose |
-|-------|---------|
-| orchestrator | Master coordinator, task decomposition |
-| implement | Write production code |
-| verify | Validate against app-truth.md |
-| test | Create and run tests |
-| docs | Update documentation |
-| numerology-expert | Domain validation |
-| creative | UX/feature innovation |
-| optimize | Performance improvements |
-
-### Skills (`.claude/skills/`)
-```
-/build-check          # Quick TypeScript + ESLint
-/new-feature [desc]   # Full feature workflow
-/add-translation      # Add i18n keys to all 3 languages
-/quick-test [func]    # Test specific function
-/analyze [area]       # Deep analysis (bundle, translations, etc.)
-```
-
-### Workflow
-1. **Orchestrator** analyzes and decomposes tasks
-2. **Implement** agents work in parallel (up to 4 threads)
-3. **Verify** agent checks after each phase
-4. **Docs** agent updates documentation
-
-### Key Files
-- `app-truth.md` - Single source of truth (architecture, patterns, constraints)
-- `docs/workflow/` - Detailed workflow documentation
+Vitest + Testing Library. Test files in `src/lib/__tests__/`. Setup: `src/test/setup.ts`. Coverage targets `src/lib/`.
